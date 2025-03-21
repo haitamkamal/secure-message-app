@@ -1,9 +1,18 @@
-# see https://symfony.com/doc/current/reference/configuration/framework.html
+# config/packages/framework.yaml
 framework:
     secret: '%env(APP_SECRET)%'
 
-    # Note that the session will be started ONLY if you read or write from it.
-    session: true
+    # Session configuration
+    session:
+        enabled: true
+        cookie_lifetime: 10 # Session cookie expires after 10 seconds
+        gc_maxlifetime: 10  # Session data expires after 10 seconds
+        name: 'app_session'
+        cookie_path: '/'
+        cookie_domain: '127.0.0.1'
+        cookie_secure: false
+        cookie_httponly: true
+        cookie_samesite: 'lax'
 
     #esi: true
     #fragments: true
@@ -12,4 +21,6 @@ when@test:
     framework:
         test: true
         session:
-            storage_factory_id: session.storage.factory.mock_file
+            handler_id: null  # Default Symfony session handler
+            cookie_lifetime: 10  # Adjust as needed (usually in seconds)
+            gc_maxlifetime: 10   # Session expiration on server
