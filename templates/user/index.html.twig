@@ -8,8 +8,13 @@
 		<div class="mb-3">
 			You are logged in as
 			{{ app.user.username }},
+			{{ app.user.roles | join(', ') }}
+
+
 			<a href="{{ path('app_logout') }}">Logout</a>
 		</div>
 	{% endif %}
+	<a href="{{ path('upgrade_to_admin') }}">upgrade your role</a>
+
 
 {% endblock %}

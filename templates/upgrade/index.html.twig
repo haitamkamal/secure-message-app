@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Upgrade to Admin
+{% endblock %}
+
+{% block body %}
+	<a href="{{ path('app_user') }}">X</a>
+
+
+	<h1>Upgrade to Admin</h1>
+	{# templates/upgrade_form.html.twig #}
+
+	<form action="{{ path('upgrade_to_admin') }}" method="POST">
+		<label for="admin_password">Enter admin password:</label>
+		<input type="password" name="admin_password" id="admin_password" required>
+		<button type="submit">Upgrade to Admin</button>
+	</form>
+
+	{# Display flash messages #}
+	{% for message in app.flashes('success') %}
+		<div class="flash-success">{{ message }}</div>
+	{% endfor %}
+	{% for message in app.flashes('error') %}
+		<div class="flash-error">{{ message }}</div>
+	{% endfor %}
+	{% for message in app.flashes('info') %}
+		<div class="flash-info">{{ message }}</div>
+	{% endfor %}
+
+
+{% endblock %}

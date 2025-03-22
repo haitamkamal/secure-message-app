@@ -5,8 +5,8 @@ framework:
     # Session configuration
     session:
         enabled: true
-        cookie_lifetime: 10 # Session cookie expires after 10 seconds
-        gc_maxlifetime: 10  # Session data expires after 10 seconds
+        cookie_lifetime: 604800   # Session cookie expires after 10 seconds
+        gc_maxlifetime: 604800    # Session data expires after 10 seconds
         name: 'app_session'
         cookie_path: '/'
         cookie_domain: '127.0.0.1'
@@ -22,5 +22,5 @@ when@test:
         test: true
         session:
             handler_id: null  # Default Symfony session handler
-            cookie_lifetime: 10  # Adjust as needed (usually in seconds)
-            gc_maxlifetime: 10   # Session expiration on server
+            cookie_lifetime: 604800    # Adjust as needed (usually in seconds)
+            gc_maxlifetime: 604800     # Session expiration on server

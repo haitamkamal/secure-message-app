@@ -21,13 +21,7 @@ class LoginController extends AbstractController
     #[Route(path: '/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils, Request $request): Response
     {
-        // Get the login error if there is one
-        $error = $authenticationUtils->getLastAuthenticationError();
-
-        // Last username entered by the user
-        $lastUsername = $authenticationUtils->getLastUsername();
-
-        // If the user is already authenticated, redirect them
+        // If the user is already logged in, redirect based on role
         if ($this->getUser()) {
             // Log session and cookie details
             $this->logger->info('User logged in', [
@@ -36,10 +30,21 @@ class LoginController extends AbstractController
                 'remember_me_cookie' => $request->cookies->get('remember_me'),
             ]);
 
-            // Redirect to a specific route after login
-            return $this->redirectToRoute('app_user');
+            // Redirect based on the user's role
+            if ($this->isGranted('ROLE_ADMIN')) {
+                return $this->redirectToRoute('app_admin');
+            } else {
+                return $this->redirectToRoute('app_user');
+            }
         }
 
+        // Get the login error if there is one
+        $error = $authenticationUtils->getLastAuthenticationError();
+
+        // Last username entered by the user
+        $lastUsername = $authenticationUtils->getLastUsername();
+
+        // Render the login form if the user is not logged in
         return $this->render('login/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
