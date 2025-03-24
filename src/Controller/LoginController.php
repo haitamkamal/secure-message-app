@@ -51,6 +51,13 @@ class LoginController extends AbstractController
         ]);
     }
 
+    #[Route(path: '/login_check', name: 'login_check')]
+    public function check(): void
+    {
+        // This method will never be executed
+        throw new \LogicException('This method should not be called directly.');
+    }
+
     #[Route(path: '/logout', name: 'app_logout')]
     public function logout(Request $request): Response
     {

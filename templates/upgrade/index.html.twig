@@ -4,28 +4,39 @@
 {% endblock %}
 
 {% block body %}
-	<a href="{{ path('app_user') }}">X</a>
+	<div class="container py-4">
+		<a href="{{ path('app_user') }}" class="btn btn-sm btn-outline-secondary mb-3">X</a>
 
+		<div class="card">
+			<div class="card-header">
+				<h1 class="h4 mb-0">Upgrade to Admin</h1>
+			</div>
 
-	<h1>Upgrade to Admin</h1>
-	{# templates/upgrade_form.html.twig #}
+			<div class="card-body">
+				<form action="{{ path('upgrade_to_admin') }}" method="POST">
+					<div class="mb-3">
+						<label for="admin_password" class="form-label">Enter admin password:</label>
+						<input type="password" name="admin_password" id="admin_password" class="form-control" required autocomplete="current-password">
+					</div>
 
-	<form action="{{ path('upgrade_to_admin') }}" method="POST">
-		<label for="admin_password">Enter admin password:</label>
-		<input type="password" name="admin_password" id="admin_password" required>
-		<button type="submit">Upgrade to Admin</button>
-	</form>
+					<button type="submit" class="btn btn-primary">
+						Upgrade to Admin
+					</button>
+				</form>
+			</div>
+		</div>
 
-	{# Display flash messages #}
-	{% for message in app.flashes('success') %}
-		<div class="flash-success">{{ message }}</div>
-	{% endfor %}
-	{% for message in app.flashes('error') %}
-		<div class="flash-error">{{ message }}</div>
-	{% endfor %}
-	{% for message in app.flashes('info') %}
-		<div class="flash-info">{{ message }}</div>
-	{% endfor %}
-
-
+		{# Flash messages #}
+		<div class="mt-3">
+			{% for message in app.flashes('success') %}
+				<div class="alert alert-success">{{ message }}</div>
+			{% endfor %}
+			{% for message in app.flashes('error') %}
+				<div class="alert alert-danger">{{ message }}</div>
+			{% endfor %}
+			{% for message in app.flashes('info') %}
+				<div class="alert alert-info">{{ message }}</div>
+			{% endfor %}
+		</div>
+	</div>
 {% endblock %}

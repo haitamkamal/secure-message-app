@@ -1,37 +1,40 @@
 security:
-    # Password hashers configuration (keeps the default settings)
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-
-    # User provider configuration
+    
     providers:
         members_provider:
             entity:
                 class: App\Entity\Members
-                property: email  # or whatever the unique field is (e.g., username or email)
-
+                property: email
+    
     firewalls:
-        # Developer specific firewall rules
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
-
-        # Main firewall configuration
+    
         main:
             lazy: true
-            provider: members_provider  # Use the members_provider for user authentication
-
-            # Enable form login (or any other authentication methods you wish)
+            provider: members_provider
             form_login:
                 login_path: app_login
-                check_path: app_login
+                check_path: login_check
+                default_target_path: app_user
+                enable_csrf: true
+                username_parameter: '_username'
+                password_parameter: '_password'
             logout:
                 path: app_logout
-                target: app_login  # Redirect to login page after logout
-
-    # Access control settings
+                target: app_login
+    
+    # Explicitly declare no role inheritance
+    role_hierarchy:
+        ROLE_USER: []    # No automatic roles
+        ROLE_ADMIN: []   # Doesn't include ROLE_USER
+    
     access_control:
-        # Example access control: only admins can access the admin section
+        - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/admin, roles: ROLE_ADMIN }
-        # Regular users can access their own profile
-        - { path: ^/profile, roles: ROLE_USER }
+        - { path: ^/user, roles: ROLE_USER }
+        # For routes that should be accessible by both:
+        - { path: ^/shared, roles: [ROLE_USER, ROLE_ADMIN] }

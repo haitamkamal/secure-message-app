@@ -4,32 +4,46 @@
 {% endblock %}
 
 {% block body %}
-	<form method="post">
+	<a href="{{ path('app_home') }}">X</a>
+
+
+	<form method="post" action="{{ path('login_check') }}">
 		{% if error %}
-			<div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+			<div class="alert alert-danger">
+				{{ error.messageKey|trans(error.messageData, 'security') }}
+				{# Add this for more detailed error debugging #}
+				{% if error.messageKey == 'Invalid credentials.' %}
+					<br><small>(Email or password is incorrect)</small>
+				{% endif %}
+			</div>
 		{% endif %}
 
 		<h1 class="h3 mb-3 font-weight-normal">Veuillez vous connecter</h1>
+
+		{# Email/Username field #}
 		<label for="username">Email</label>
-		<input type="email" value="{{ last_username }}" name="_username" id="username" class="form-control" autocomplete="email" required autofocus>
-		<label for="password">Password</label>
-		<input type="password" name="_password" id="password" class="form-control" autocomplete="current-password" required>
-
 		<input
-		type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+		type="email" value="{{ last_username }}" name="_username" id="username" class="form-control" autocomplete="email" required autofocus placeholder="your@email.com">
 
+		{# Password field #}
+		<label for="password">Password</label>
+		<input
+		type="password" name="_password" id="password" class="form-control" autocomplete="current-password" required placeholder="••••••••">
+
+		{# CSRF Token #}
+		<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+		{# Remember me option (uncomment if needed) #}
 		{#
-								            Uncomment this section and add a remember_me option below your firewall to activate remember me functionality.
-								            See https://symfony.com/doc/current/security/remember_me.html
-								
-								            <div class="checkbox mb-3">
-								                <input type="checkbox" name="_remember_me" id="_remember_me">
-								                <label for="_remember_me">Remember me</label>
-								            </div>
+								        <div class="checkbox mb-3">
+								            <label>
+								                <input type="checkbox" name="_remember_me"> Remember me
+								            </label>
+								        </div>
 								        #}
 
-		<button class="btn btn-lg btn-primary" type="submit">
-			connecter
+		{# Submit button #}
+			<button class="btn btn-lg btn-primary mt-3" type="submit"> Se connecter
 		</button>
 	</form>
 {% endblock %}

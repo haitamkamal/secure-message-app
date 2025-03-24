@@ -4,9 +4,33 @@
 {% endblock %}
 
 {% block body %}
-	<h1>Welcome, Admin!</h1>
+	<div class="container py-4">
+		<div class="card shadow-sm">
+			<div class="card-header bg-primary text-white">
+				<div class="d-flex justify-content-between align-items-center">
+					<h1 class="h4 mb-0">
+						<i class="bi bi-shield-lock me-2"></i>
+						Admin Dashboard
+					</h1>
+					<a href="{{ path('app_logout') }}" class="btn btn-sm btn-light" title="Logout">
+						<i class="bi bi-box-arrow-right"></i>
+						Logout
+					</a>
+				</div>
+			</div>
 
-	<p>This is the admin dashboard. You have special powers!</p>
+			<div
+				class="card-body">
+				{# Security check - only show content to real admins #}
+				{% if is_granted('ROLE_ADMIN') %}
+					<div class="alert alert-success">
+						<i class="bi bi-person-check me-2"></i>
+						Welcome,
+						<strong>{{ app.user.username }}</strong>!
+						<span class="badge bg-dark ms-2">
+							<p>ROLE_ADMIN</p>
+						</span>
+					</div>
 
-	<a href="{{ path('app_logout') }}">Logout</a>
-{% endblock %}
+				{% endif %}
+			{% endblock %}
