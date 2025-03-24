@@ -2,24 +2,23 @@
 
 namespace App\Controller;
 
+use App\Entity\Members;
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\HttpFoundation\RateLimiter\RequestRateLimiterInterface;
-use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 class AdminUpgradeController extends AbstractController
 {
-    public function __construct(
-        private LoggerInterface $logger,
-        private UserPasswordHasherInterface $passwordHasher
-    ) {
+    private LoggerInterface $logger;
+
+    public function __construct(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
     }
 
     #[Route('/upgrade', name: 'upgrade_to_admin', methods: ['GET', 'POST'])]
@@ -28,19 +27,14 @@ class AdminUpgradeController extends AbstractController
         EntityManagerInterface $entityManager,
         TokenStorageInterface $tokenStorage
     ): Response {
+        // 1. Verify user is authenticated
         $user = $this->getUser();
-        
-        if (!$user) {
+        if (!$user instanceof Members) {
             $this->addFlash('error', 'You need to be logged in to upgrade your role.');
             return $this->redirectToRoute('app_login');
         }
 
-        // Rate limiting check (implement your own rate limiting logic)
-        if ($this->isTooManyAttempts($request)) {
-            $this->addFlash('error', 'Too many attempts. Please try again later.');
-            return $this->redirectToRoute('app_user');
-        }
-
+        // 2. Handle form submission
         if ($request->isMethod('POST')) {
             $adminPassword = $request->request->get('admin_password');
             
@@ -49,31 +43,38 @@ class AdminUpgradeController extends AbstractController
                 return $this->redirectToRoute('upgrade_to_admin');
             }
 
-            // In production, use proper password verification
-            $isValidPassword = $this->verifyAdminPassword($adminPassword);
-            
-            if ($isValidPassword) {
+            // 3. Verify admin password (in production, use proper hashing!)
+            if ($this->verifyAdminPassword($adminPassword)) {
                 if (!$user->hasRole('ROLE_ADMIN')) {
-                    $user->addRole('ROLE_ADMIN');
-                    
                     try {
+                        // 4. Upgrade user roles
+                        $user->upgradeToAdmin();
                         $entityManager->flush();
-                        
-                        // Refresh authentication
+
+                        // 5. Refresh the user from database to ensure we have latest data
+                        $entityManager->refresh($user);
+
+                        // 6. Create new authenticated token with updated roles
                         $token = new UsernamePasswordToken(
                             $user,
-                            'main',
+                            'main', // firewall name
                             $user->getRoles()
                         );
-                        $tokenStorage->setToken($token);
                         
+                        // 7. Update both token storage and session
+                        $tokenStorage->setToken($token);
+                        $request->getSession()->set('_security_main', serialize($token));
+
+                        // 8. Log and notify success
                         $this->logger->info('User role upgraded to admin', [
                             'user_id' => $user->getId(),
-                            'email' => $user->getEmail()
+                            'email' => $user->getEmail(),
+                            'roles' => $user->getRoles()
                         ]);
                         
                         $this->addFlash('success', 'You are now an admin!');
                         return $this->redirectToRoute('app_admin');
+
                     } catch (\Exception $e) {
                         $this->logger->error('Role upgrade failed', [
                             'error' => $e->getMessage(),
@@ -94,32 +95,16 @@ class AdminUpgradeController extends AbstractController
             }
         }
 
+        // 9. Render the upgrade form
         return $this->render('upgrade/index.html.twig');
     }
 
     private function verifyAdminPassword(string $password): bool
     {
-        // In production, use one of these:
-        // 1. Compare against hashed password from configuration
-        // 2. Use UserPasswordHasherInterface to verify
-        // 3. Check against secret stored in environment variables
-        
-        // Temporary implementation (replace this!)
+        // In production, you should:
+        // 1. Store admin password hash in environment variables
+        // 2. Use Symfony's password hasher component
+        // This is simplified for development:
         return $password === 'admin123';
-    }
-
-    private function isTooManyAttempts(Request $request): bool
-    {
-        // Implement your rate limiting logic here
-        // Example: Check session for attempt count
-        $session = $request->getSession();
-        $attempts = $session->get('upgrade_attempts', 0);
-        
-        if ($attempts >= 5) {
-            return true;
-        }
-        
-        $session->set('upgrade_attempts', $attempts + 1);
-        return false;
     }
 }
